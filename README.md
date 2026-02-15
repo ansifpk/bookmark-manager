@@ -1,36 +1,230 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+📌 Bookmark Manager
 
-## Getting Started
+A full-stack Bookmark Manager built with Next.js App Router, Supabase (Google OAuth), and Redux Toolkit.
 
-First, run the development server:
+Users can:
 
-```bash
+🔐 Login with Google
+
+➕ Add bookmarks
+
+📖 View their bookmarks
+
+✏️ Update bookmarks
+
+🗑 Delete bookmarks
+
+🔒 Access only their own data (RLS enabled)
+
+🚀 Tech Stack
+
+Frontend: Next.js 14+ (App Router)
+
+State Management: Redux Toolkit
+
+Backend/Auth/DB: Supabase
+
+Authentication: Google OAuth via Supabase
+
+Database: PostgreSQL (Supabase)
+
+Validation: Zod
+
+Styling: Tailwind CSS (if applicable)
+
+🏗 Architecture
+Authentication Flow
+
+User clicks Login with Google
+
+Supabase redirects to Google
+
+After success → redirects to /auth/callback
+
+exchangeCodeForSession() creates session
+
+User session stored in cookies
+
+Client fetches user → Redux stores user info
+
+Database Structure
+users table
+Column	Type
+id	uuid (PK)
+email	text
+created_at	timestamp
+bookmarks table
+Column	Type
+id	uuid (PK)
+user_id	uuid (FK)
+title	text
+url	text
+created_at	timestamp
+🔐 Row Level Security (RLS)
+Enable RLS
+ALTER TABLE bookmarks ENABLE ROW LEVEL SECURITY;
+
+Policies
+SELECT
+CREATE POLICY "Users can view their bookmarks"
+ON bookmarks
+FOR SELECT
+USING (auth.uid() = user_id);
+
+INSERT
+CREATE POLICY "Users can insert their bookmarks"
+ON bookmarks
+FOR INSERT
+WITH CHECK (auth.uid() = user_id);
+
+UPDATE
+CREATE POLICY "Users can update their bookmarks"
+ON bookmarks
+FOR UPDATE
+USING (auth.uid() = user_id)
+WITH CHECK (auth.uid() = user_id);
+
+DELETE
+CREATE POLICY "Users can delete their bookmarks"
+ON bookmarks
+FOR DELETE
+USING (auth.uid() = user_id);
+
+📂 Project Structure
+app/
+ ├── layout.tsx
+ ├── page.tsx
+ ├── auth/
+ │    └── callback/route.ts
+
+components/
+ ├── ui/
+ │     └── alert-dialog.tsx
+ │     └── button.tsx
+ │     └── card.tsx
+ │     └── dialogue.tsx
+ │     └── sonner.tsx
+ ├── Header.tsx
+ ├── AddDialogue.tsx
+ ├── AlertMessage.tsx
+ ├── Btn.tsx
+ ├── EditDialogue.tsx
+ ├── ListBookMark.tsx
+
+store/
+ ├── store.ts
+ ├── authSlice.ts
+
+lib/
+ ├── supabase-client.ts
+ ├── supabase-server.ts
+
+⚙️ Environment Variables
+
+Create .env.local:
+
+NEXT_PUBLIC_SUPABASE_URL=your_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key (if needed)
+
+▶️ Getting Started
+
+git clone https://github.com/ansifpk/bookmark-manager
+cd bookmark-manager
+
+
+1️⃣ Install dependencies
+npm install
+
+2️⃣ Run development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+3️⃣ Open in browser
+http://localhost:3000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+🔄 API Endpoints
+Get all bookmarks
+GET /api/bookmarks
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Create bookmark
+POST /api/bookmarks
 
-## Learn More
+Update bookmark
+PUT /api/bookmarks/:id
 
-To learn more about Next.js, take a look at the following resources:
+Delete bookmark
+DELETE /api/bookmarks/:id
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+🧠 Why Redux?
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Redux is used to:
 
-## Deploy on Vercel
+Store authenticated user info
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Manage UI state globally
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Enable scalable state management
+
+Supabase handles:
+
+Session
+
+Token refresh
+
+Auth persistence
+
+🛡 Security
+
+Supabase session stored in HTTP-only cookies
+
+RLS prevents cross-user data access
+
+Server routes validate authenticated user
+
+User ID never trusted from client
+
+✨ Features
+
+Google OAuth Login
+
+Protected Routes
+
+Server Actions
+
+Secure API Routes
+
+RLS-based multi-user isolation
+
+Clean App Router architecture
+
+Scalable state management
+
+📌 Future Improvements
+
+Pagination
+
+Search functionality
+
+Bookmark categories
+
+Tag system
+
+Shareable public bookmarks
+
+Dark mode
+
+Deployment on Vercel
+
+🌍 Deployment
+
+Recommended:
+
+Frontend: Vercel
+
+Backend: Supabase (hosted)
+
+Database: Supabase PostgreSQL
+
+📄 License
+
+MIT License
