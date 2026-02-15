@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import z from "zod";
 import AlertMessage from "./AlertMessage";
 import Btn from "./Btn";
+import { createClient } from "@/lib/supabase-client";
 const bookmarkSchema = z.object({
   title: z.string().min(1, "Title is required!"),
   url: z.string().min(1, "URL is required!"),
@@ -29,18 +30,32 @@ const EditDialogue = ({
   open: boolean;
   setOpen: () => void;
   setBooks: React.Dispatch<React.SetStateAction<IBookMark[]>>;
-  book: IBookMark | undefined;  
+  book: IBookMark | undefined;
 }) => {
   const [title, setTitle] = useState(book!.title);
   const [url, setUrl] = useState(book!.url);
   const [openAlert, setOpenAlert] = useState(false);
   const [errors, setErrors] = useState<any>(null);
+  
+  const handleEdit = async () => {
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from("bookmarks")
+      .update({
+        title: title,
+        url: url,
+      })
+      .eq("id", book?.id)
+      .select();
 
-  const handleSubmit = async () => {
-    setOpenAlert(!openAlert);
+    if (error) {
+      console.error("Update error:", error);
+      return;
+    }
     setOpen();
-    setBooks((prev)=>prev.map((b)=>b._id === book!._id ?{ ...b,title,url }:b));
-    toast.success("success");
+    setBooks((prev)=>prev.map((book)=>book.id === data[0].id ? data[0]:book ));
+    setOpenAlert(!openAlert);    
+    toast.success("Book mark has been Edited");
   };
   const validateForm = async () => {
     const result = bookmarkSchema.safeParse({ title, url });
@@ -66,9 +81,7 @@ const EditDialogue = ({
         <form>
           <DialogContent className="max-w-sm bg-gray-200 backdrop-blur-lg">
             <DialogHeader>
-              <DialogTitle>
-                Edit BookMark
-              </DialogTitle>
+              <DialogTitle>Edit BookMark</DialogTitle>
               <DialogDescription></DialogDescription>
             </DialogHeader>
             <div className="space-y-5">
@@ -129,7 +142,7 @@ const EditDialogue = ({
         <AlertMessage
           open={openAlert}
           description={"This will Save your BookMark in our server."}
-          handleSubmit={handleSubmit}
+          handleSubmit={handleEdit}
           handleCancel={handleCancel}
         />
       )}

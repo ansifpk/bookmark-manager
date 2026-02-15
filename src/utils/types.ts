@@ -1,5 +1,5 @@
 export interface IBookMark{
-    _id:number,
+    id:number,
     title:string,
     url:string
 }

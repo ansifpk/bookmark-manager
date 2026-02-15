@@ -15,6 +15,7 @@ import AlertMessage from "./AlertMessage";
 import {z} from "zod";
 import { toast } from "sonner";
 import { IBookMark } from "@/utils/types";
+import { createClient } from "@/lib/supabase-client";
 
 const bookmarkSchema = z.object({
   title: z.string().min(1, "Title is required!"),
@@ -40,8 +41,27 @@ const FormDialogue = ({
   const handleSubmit = async ()=>{
    setOpenAlert(!openAlert);
    setOpen();
-   setBooks((prev)=>[...prev,{_id:prev.length+1,title,url}])
-   toast.success("success");
+   const supabase =  createClient();
+   const userData = await supabase.auth.getUser();
+   
+   const { error } = await supabase
+    .from("bookmarks")
+    .insert([
+      {
+        user_id: userData.data.user?.id,
+        title: title,
+        url: url,
+        created_at: new Date().toISOString(),
+      },
+    ])
+    .select();
+
+  if (error) {
+    console.error("Insert error:", error);
+    return;
+  } 
+   setBooks((prev)=>[...prev,{id:prev.length+1,title,url}]);
+   toast.success("Bookmark has been created");
   }
   const validateForm = async()=>{
    const result = bookmarkSchema.safeParse({title,url});

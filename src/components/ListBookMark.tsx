@@ -14,38 +14,47 @@ import {
 } from "./ui/card";
 import AlertMessage from "./AlertMessage";
 import EditDialogue from "./EditDialogue";
+import { createClient } from "@/lib/supabase-client";
 
-
-const ListBookMark = ({books,setBooks}:{books:IBookMark[],setBooks: React.Dispatch<React.SetStateAction<IBookMark[]>>;}) => {
+const ListBookMark = ({
+  books,
+  setBooks,
+}: {
+  books: IBookMark[];
+  setBooks: React.Dispatch<React.SetStateAction<IBookMark[]>>;
+}) => {
   const [openDeleteAlert, setOpenDeleteAlert] = useState(false);
-  const [openEditAlert, setOpenEditAlert] = useState(false);
   const [openEditDialogue, setOpenEditDialogue] = useState(false);
   const [id, setId] = useState<number>(0);
   const [book, setBook] = useState<IBookMark>();
-  
+
   const handleDelete = async () => {
-    setBooks((prev)=>prev.filter((v)=>v._id !== id));
+    const supabase = createClient();
+    const { error } = await supabase.from("bookmarks").delete().eq("id", id);
+
+    if (error) {
+      console.error("Delete error:", error);
+      return;
+    }
+
+    setBooks((prev) => prev.filter((v) => v.id !== id));
     setOpenDeleteAlert(!openDeleteAlert);
     toast.success("Book mark has been deleted");
   };
-  const handleEdit = async () => {
-    toast.success("Book mark has been Edited"+id);
-  };
-
+ 
   return (
     <div>
-      
       <div className="m-5 grid grid-cols-1 sm:grid-cols-2 text-sm md:grid-cols-4 gap-5">
-        {books.map((book) => (
-          <Card key={book._id} className="w-full md:max-w-sm">
+        {books.map((book, index) => (
+          <Card key={`${book.id}` + `${index}`} className="w-full md:max-w-sm">
             <CardHeader>
               <CardTitle>{book.title}</CardTitle>
               <CardDescription></CardDescription>
               <CardAction className="cursor-pointer flex gap-2">
                 <span>
                   <PencilIcon
-                    onClick={() =>{
-                      setBook(book) 
+                    onClick={() => {
+                      setBook(book);
                       setOpenEditDialogue(!openEditDialogue);
                     }}
                     size="15"
@@ -54,8 +63,8 @@ const ListBookMark = ({books,setBooks}:{books:IBookMark[],setBooks: React.Dispat
                 <span className="text-destructive  dark:text-destructive">
                   <TrashIcon
                     onClick={() => {
-                      setId(book._id) 
-                      setOpenDeleteAlert(!openDeleteAlert)
+                      setId(book.id);
+                      setOpenDeleteAlert(!openDeleteAlert);
                     }}
                     size="15"
                   />
@@ -68,14 +77,14 @@ const ListBookMark = ({books,setBooks}:{books:IBookMark[],setBooks: React.Dispat
           </Card>
         ))}
       </div>
-      {
-      openEditDialogue && <EditDialogue
-       open={openEditDialogue} 
-       setOpen={()=>setOpenEditDialogue(!openEditDialogue)}
-       setBooks={setBooks}
-       book={book}
-       />
-       }
+      {openEditDialogue && (
+        <EditDialogue
+          open={openEditDialogue}
+          setOpen={() => setOpenEditDialogue(!openEditDialogue)}
+          setBooks={setBooks}
+          book={book}
+        />
+      )}
       {openDeleteAlert && (
         <AlertMessage
           open={openDeleteAlert}
@@ -85,18 +94,6 @@ const ListBookMark = ({books,setBooks}:{books:IBookMark[],setBooks: React.Dispat
           handleSubmit={handleDelete}
           handleCancel={() => {
             setOpenDeleteAlert(!openDeleteAlert);
-          }}
-        />
-      )}
-      {openEditAlert && (
-        <AlertMessage
-          open={openEditAlert}
-          description={
-            "This will Save your BookMark with latest changes you made in to our server."
-          }
-          handleSubmit={handleEdit}
-          handleCancel={() => {
-            setOpenEditAlert(!openEditAlert);
           }}
         />
       )}
