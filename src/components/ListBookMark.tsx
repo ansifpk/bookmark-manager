@@ -1,7 +1,7 @@
 "use client";
 
 import { IBookMark } from "@/utils/types";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { PencilIcon, TrashIcon } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -15,6 +15,8 @@ import {
 import AlertMessage from "./AlertMessage";
 import EditDialogue from "./EditDialogue";
 import { createClient } from "@/lib/supabase-client";
+import { useSelector } from "react-redux";
+const supabase = createClient();
 
 const ListBookMark = ({
   books,
@@ -27,9 +29,10 @@ const ListBookMark = ({
   const [openEditDialogue, setOpenEditDialogue] = useState(false);
   const [id, setId] = useState<number>(0);
   const [book, setBook] = useState<IBookMark>();
-
+  
+  const userId = useSelector((state:any)=>state.auth.id);
   const handleDelete = async () => {
-    const supabase = createClient();
+    
     const { error } = await supabase.from("bookmarks").delete().eq("id", id);
 
     if (error) {
@@ -41,6 +44,32 @@ const ListBookMark = ({
     setOpenDeleteAlert(!openDeleteAlert);
     toast.success("Book mark has been deleted");
   };
+
+   useEffect(() => {    
+    if (!userId) return;
+    const channel = supabase
+      .channel("bookmarks-channel")
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "bookmarks",
+          filter: `user_id=eq.${userId}`,
+        },
+        (payload) => {
+          const newBookmark = payload.new as IBookMark
+          setBooks((prev)=>prev.map((book)=>book.id === newBookmark.id ? newBookmark : book ));
+        }
+      )
+    .subscribe((status) => {
+      console.log("Realtime status:", status);
+    });
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [userId]);
  
   return (
     <div>

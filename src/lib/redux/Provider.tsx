@@ -13,10 +13,9 @@ function AuthLoader({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const loadUser = async () => {
       const supabase = createClient();
-      const { data } = await supabase.auth.getUser();
-
+      const { data } = await supabase.auth.getUser();      
       if (data.user) {
-        dispatch(setUser(data.user.email!));
+        dispatch(setUser(data.user.id!));
       }
     };
 
