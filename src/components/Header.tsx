@@ -1,9 +1,8 @@
 "use client";
 import { removeUser } from "@/lib/redux/slice";
 import { createClient } from "@/lib/supabase-client"
-import { DoorOpenIcon } from "lucide-react";
+import {  LogOut } from "lucide-react";
 import { redirect } from "next/navigation";
-import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 const Header = () => {
@@ -18,10 +17,10 @@ const Header = () => {
   
   return (
     <nav className="flex justify-between mx-5 place-items-center-safe"> 
-       <div className="text-3xl font-bold underline">E-Book Mark</div>
+       <div className="text-3xl font-bold underline">MarkBase</div>
        <ul className="flex gap-5 cursor-pointer" >
         {
-         user&&<DoorOpenIcon onClick={()=>handleLogout()} className="text-red-600" />
+         user&&<LogOut  onClick={()=>handleLogout()} className="text-red-600" />
         }
        </ul>
     </nav>
